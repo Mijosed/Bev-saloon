@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  --color-rasta-red: #e20d0d;
+  --color-rasta-yellow: #f0d817;
+  --color-rasta-green: #3eb308;
+  --color-rasta-dark: #0d0502;
+  --color-rasta-deep: #1a0a03;
+
+  --color-girly-pink: #ec4899;
+  --color-girly-rose: #f9a8d4;
+  --color-girly-light: #fce7f3;
+  --color-girly-cream: #fdf6f0;
+  --color-girly-dark: #9d174d;
+
+  --font-montserrat: 'Montserrat', sans-serif;
+  --font-playfair: 'Playfair Display', serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
