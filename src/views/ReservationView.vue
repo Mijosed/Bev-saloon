@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { CheckCircle, Scissors, Sparkles, Calendar, Clock, User, Phone, Mail, ChevronDown } from 'lucide-vue-next'
+import { CheckCircle, Scissors, Sparkles, Calendar, Clock, User, Phone, Mail, ChevronDown, Instagram } from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,12 +12,19 @@ function setType(type: 'coiffure' | 'ongles') {
 }
 
 const hairServices = [
-  'Coupe femme', 'Coupe homme', 'Brushing', 'Coloration complète',
-  'Mèches / Balayage', 'Tresses / Locks', 'Défrisage', 'Soin capillaire',
+  'Installation microlocks - Cheveux courts',
+  'Installation microlocks - Cheveux mi-longs',
+  'Installation microlocks - Cheveux longs',
+  'Installation microlocks - Cheveux très longs',
+  'Resserrage microlocks - 200 à 300 locks',
+  'Resserrage microlocks - 300 à 500 locks',
+  'Resserrage microlocks - 500 à 600 locks',
 ]
 const nailServices = [
-  'Manucure simple', 'Pose gel', 'Pose acrylique', 'Nail art simple',
-  'Nail art élaboré', 'Pédicure', 'Dépose gel/acrylique', 'French manucure',
+  'Manucure simple (VSP / French)',
+  'Manucure Nail Art',
+  'Dépose',
+  'Dépose extérieure',
 ]
 
 const timeSlots = [
@@ -318,6 +325,27 @@ function submit() {
             Confirmer la réservation
           </button>
         </div>
+
+        <!-- Divider -->
+        <div class="flex items-center gap-3 my-8">
+          <span class="flex-1 h-px" :style="isHair ? 'background: rgba(255,255,255,0.1)' : 'background: #fce7f3'"></span>
+          <span class="text-xs font-semibold uppercase tracking-wide" :class="isHair ? 'text-white/40' : 'text-pink-300'">ou</span>
+          <span class="flex-1 h-px" :style="isHair ? 'background: rgba(255,255,255,0.1)' : 'background: #fce7f3'"></span>
+        </div>
+
+        <!-- Instagram CTA -->
+        <a
+          href="https://www.instagram.com/bev.aesthetic_"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center justify-center gap-2 w-full py-4 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+          :style="isHair
+            ? 'background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white'
+            : 'background: white; border: 1px solid #fce7f3; color: #ec4899'"
+        >
+          <Instagram class="w-4 h-4" />
+          Me contacter directement sur Instagram
+        </a>
       </template>
     </div>
   </div>

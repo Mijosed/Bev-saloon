@@ -8,8 +8,7 @@ const route = useRoute()
 
 const isHome = computed(() => route.name === 'home')
 
-const theme = computed<'hair' | 'nails' | 'neutral'>(() => {
-  if (route.name === 'contact') return 'neutral'
+const theme = computed<'hair' | 'nails'>(() => {
   if (route.name === 'nails') return 'nails'
   if (route.name === 'reservation' && route.query.type === 'ongles') return 'nails'
   return 'hair'

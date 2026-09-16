@@ -36,7 +36,7 @@ const router = useRouter()
         </div>
 
         <p class="text-white/60 text-sm md:text-base mb-8 max-w-xs">
-          Coupes, colorations, tresses, locks & soins capillaires
+          Microlocks, départs en vanilles & en nattes
         </p>
 
         <button
@@ -66,10 +66,8 @@ const router = useRouter()
     >
       <!-- Background image -->
       <img src="/images/nails_1.jpg" alt="" class="absolute inset-0 w-full h-full object-cover pointer-events-none select-none" style="opacity: 0.55; " />
-      <!-- Edge fade -->
-      <div class="absolute inset-0 pointer-events-none"
-        style="background: radial-gradient(ellipse 90% 90% at center, transparent 55%, #fdf6f0 100%)">
-      </div>
+      <!-- Dark overlay -->
+      <div class="absolute inset-0 pointer-events-none" style="background: rgba(0,0,0,0.52)"></div>
 
       <!-- Content -->
       <div class="relative z-10 text-center px-8 py-12 flex flex-col items-center">
@@ -84,7 +82,7 @@ const router = useRouter()
         </div>
 
         <p class="text-white/70 text-sm md:text-base mb-8 max-w-xs font-medium">
-          Manucure, gel, acrylique, nail art & pédicure
+          Manucure simple & nail art sur mesure
         </p>
 
         <button

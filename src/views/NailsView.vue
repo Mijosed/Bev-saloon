@@ -1,18 +1,46 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { Sparkles, Clock, ChevronRight, ArrowLeft } from 'lucide-vue-next'
+import { ChevronRight, ArrowLeft } from 'lucide-vue-next'
+import ConditionsCard from '@/components/ConditionsCard.vue'
 
 const router = useRouter()
 
 const services = [
-  { name: 'Manucure simple', duration: '30 min', price: 25, popular: false },
-  { name: 'Pose gel', duration: '1h', price: 45, popular: true },
-  { name: 'Pose acrylique', duration: '1h30', price: 55, popular: true },
-  { name: 'Nail art simple', duration: '15 min', price: 15, popular: false },
-  { name: 'Nail art élaboré', duration: '45 min', price: 30, popular: false },
-  { name: 'Pédicure', duration: '45 min', price: 35, popular: false },
-  { name: 'Dépose gel/acrylique', duration: '30 min', price: 15, popular: false },
-  { name: 'French manucure', duration: '45 min', price: 35, popular: true },
+  { name: 'Manucure simple', subtitle: 'VSP / French — Taille S, M ou L', price: 30, popular: false },
+  { name: 'Manucure Nail Art', subtitle: 'Pose avec décorations personnalisées', price: 50, popular: true },
+  { name: 'Dépose', subtitle: '', price: 10, popular: false },
+  { name: 'Dépose extérieure', subtitle: '(pas de résine)', price: 15, popular: false },
+]
+
+const conditionsItems = [
+  {
+    title: 'Acompte de 10€',
+    text: "L'acompte versé est NON REMBOURSABLE en cas d'annulation de votre part.\nMerci de noter que 1 acompte = 1 rendez-vous. L'acompte ne pourra donc pas être transféré à un autre rendez-vous.",
+  },
+  {
+    title: 'Accompagnateurs',
+    text: 'Les accompagnateurs ne sont pas autorisés.',
+  },
+  {
+    title: 'Heure du rendez-vous',
+    text: "Merci d'arriver à l'heure, afin de respecter l'organisation des rendez-vous.",
+  },
+  {
+    title: 'À votre arrivée',
+    text: "Merci de m'envoyer simplement un message lorsque vous êtes arrivée. Je viendrai vous ouvrir.\nMerci de ne pas sonner.",
+  },
+  {
+    title: 'Remplissages',
+    text: 'Les remplissages doivent être effectués dans un délai maximum de 3 semaines. Au-delà de ce délai, une dépose ainsi que le tarif complet d\'une nouvelle pose seront facturés.\nUn remplissage retire 5€ sur le tarif de la prestation de base.',
+  },
+  {
+    title: 'Dépose obligatoire',
+    text: 'Pour des raisons de sécurité et afin de préserver vos ongles (hors gainage), vous pourrez effectuer 2 remplissages consécutifs maximum. Une dépose sera ensuite obligatoire avant une nouvelle pose.',
+  },
+  {
+    title: 'Questions & devis',
+    text: 'Pour toute question ou demande de devis, je reste disponible en DM Instagram.',
+  },
 ]
 
 const reserve = (service: string) => {
@@ -46,7 +74,7 @@ const reserve = (service: string) => {
         </div>
 
         <p class="text-pink-700 text-lg max-w-xl mx-auto">
-          Des ongles parfaits pour chaque occasion — manucure, gel, acrylique et nail art sur mesure.
+          Des ongles parfaits pour chaque occasion — manucure simple et nail art sur mesure.
         </p>
       </div>
     </section>
@@ -83,10 +111,10 @@ const reserve = (service: string) => {
 
           <h3 class="font-bold text-base mb-3 leading-snug pr-16" style="color: #9d174d">{{ service.name }}</h3>
 
-          <div class="flex items-center gap-1.5 text-xs text-pink-300 mb-4">
-            <Clock class="w-3.5 h-3.5" />
-            {{ service.duration }}
+          <div v-if="service.subtitle" class="text-xs text-pink-300 mb-4">
+            {{ service.subtitle }}
           </div>
+          <div v-else class="mb-4"></div>
 
           <div class="flex items-center justify-between">
             <span class="text-2xl font-extrabold" style="color: #ec4899">{{ service.price }}€</span>
@@ -112,6 +140,8 @@ const reserve = (service: string) => {
         </button>
       </div>
     </section>
+
+    <ConditionsCard :dark="false" accent="#ec4899" :items="conditionsItems" />
 
   </div>
 </template>
