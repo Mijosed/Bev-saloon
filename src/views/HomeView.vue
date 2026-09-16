@@ -35,7 +35,7 @@ const router = useRouter()
           <span class="h-1 w-10 rounded-full" style="background: #3eb308"></span>
         </div>
 
-        <p class="text-white/60 text-sm md:text-base mb-8 max-w-xs">
+        <p class="text-white/60 text-xs sm:text-sm md:text-base mb-8 whitespace-nowrap">
           Microlocks, départs en vanilles & en nattes
         </p>
 
@@ -81,7 +81,7 @@ const router = useRouter()
           <span class="h-1 w-10 rounded-full bg-white/40"></span>
         </div>
 
-        <p class="text-white/70 text-sm md:text-base mb-8 max-w-xs font-medium">
+        <p class="text-white/70 text-xs sm:text-sm md:text-base mb-8 whitespace-nowrap font-medium">
           Manucure simple & nail art sur mesure
         </p>
 
