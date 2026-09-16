@@ -262,7 +262,7 @@ function submit() {
                   v-model="form.date"
                   type="date"
                   :min="minDate"
-                  class="w-full min-w-0 pl-10 pr-2 py-3 rounded-xl text-sm outline-none transition-all"
+                  class="block w-full min-w-0 appearance-none pl-10 pr-2 py-3 rounded-xl text-sm outline-none transition-all"
                   :class="[
                     errors.date ? 'ring-2 ring-red-400' : '',
                     isHair
