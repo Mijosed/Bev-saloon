@@ -68,6 +68,10 @@ const router = useRouter()
       <img src="/images/nails_1.jpg" alt="" fetchpriority="high" class="absolute inset-0 w-full h-full object-cover pointer-events-none select-none" style="opacity: 0.55; " />
       <!-- Dark overlay -->
       <div class="absolute inset-0 pointer-events-none" style="background: rgba(0,0,0,0.52)"></div>
+      <!-- Edge fade -->
+      <div class="absolute inset-0 pointer-events-none"
+        style="background: radial-gradient(ellipse 90% 90% at center, transparent 55%, #0d0502 100%)">
+      </div>
 
       <!-- Content -->
       <div class="relative z-10 text-center px-8 py-12 flex flex-col items-center">
