@@ -47,7 +47,7 @@ defineProps<{ theme: 'hair' | 'nails' }>()
             </li>
             <li class="flex items-center gap-2">
               <Mail class="w-4 h-4 shrink-0" style="color: #e20d0d" />
-              <a href="mailto:beverlykobehi@outlook.com" class="underline underline-offset-2 decoration-white/30 hover:text-white hover:decoration-white transition-colors">beverlykobehi@outlook.com</a>
+              <a href="mailto:bev.aesthetic@outlook.com" class="underline underline-offset-2 decoration-white/30 hover:text-white hover:decoration-white transition-colors">bev.aesthetic@outlook.com</a>
             </li>
           </ul>
         </div>
@@ -101,7 +101,7 @@ defineProps<{ theme: 'hair' | 'nails' }>()
             </li>
             <li class="flex items-center gap-2">
               <Mail class="w-4 h-4 shrink-0 text-[#ec4899]" />
-              <a href="mailto:beverlykobehi@outlook.com" class="underline underline-offset-2 decoration-[#ec489980] hover:decoration-[#ec4899] transition-colors">beverlykobehi@outlook.com</a>
+              <a href="mailto:bev.aesthetic@outlook.com" class="underline underline-offset-2 decoration-[#ec489980] hover:decoration-[#ec4899] transition-colors">bev.aesthetic@outlook.com</a>
             </li>
           </ul>
         </div>
