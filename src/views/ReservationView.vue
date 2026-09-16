@@ -253,7 +253,7 @@ function submit() {
 
           <!-- Date + Time -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
+            <div class="min-w-0">
               <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5"
                 :class="isHair ? 'text-white/50' : 'text-pink-400'">Date</label>
               <div class="relative">
@@ -262,7 +262,7 @@ function submit() {
                   v-model="form.date"
                   type="date"
                   :min="minDate"
-                  class="w-full pl-10 pr-4 py-3 rounded-xl text-sm outline-none transition-all"
+                  class="w-full min-w-0 pl-10 pr-2 py-3 rounded-xl text-sm outline-none transition-all"
                   :class="[
                     errors.date ? 'ring-2 ring-red-400' : '',
                     isHair
@@ -274,7 +274,7 @@ function submit() {
               <p v-if="errors.date" class="text-red-400 text-xs mt-1">{{ errors.date }}</p>
             </div>
 
-            <div>
+            <div class="min-w-0">
               <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5"
                 :class="isHair ? 'text-white/50' : 'text-pink-400'">Horaire</label>
               <div class="relative">
