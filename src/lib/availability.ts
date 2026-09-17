@@ -54,16 +54,40 @@ function mergeIntervals(list: Interval[]): Interval[] {
   return merged
 }
 
-/** Plages ouvertes pour une date : week-end par défaut + créneaux ajoutés par l'admin. */
+/** Retire une plage fermée d'une liste de plages ouvertes. */
+function subtract(windows: Interval[], cut: Interval): Interval[] {
+  const result: Interval[] = []
+  for (const w of windows) {
+    if (cut.end <= w.start || cut.start >= w.end) {
+      result.push(w)
+      continue
+    }
+    if (cut.start > w.start) result.push({ start: w.start, end: cut.start })
+    if (cut.end < w.end) result.push({ start: cut.end, end: w.end })
+  }
+  return result
+}
+
+/**
+ * Plages ouvertes pour une date :
+ * week-end par défaut + créneaux ouverts par l'admin, moins les créneaux qu'elle a fermés.
+ */
 export function openWindows(date: string, extra: ExtraSlot[]): Interval[] {
   const windows: Interval[] = []
   if (isWeekend(date)) windows.push({ start: OPEN_START, end: OPEN_END })
   for (const slot of extra) {
-    if (slot.date === date) {
+    if (slot.date === date && slot.kind === 'open') {
       windows.push({ start: toMinutes(slot.start_time), end: toMinutes(slot.end_time) })
     }
   }
-  return mergeIntervals(windows)
+
+  let merged = mergeIntervals(windows)
+  for (const slot of extra) {
+    if (slot.date === date && slot.kind === 'closed') {
+      merged = subtract(merged, { start: toMinutes(slot.start_time), end: toMinutes(slot.end_time) })
+    }
+  }
+  return merged
 }
 
 export function isDateOpen(date: string, extra: ExtraSlot[]): boolean {

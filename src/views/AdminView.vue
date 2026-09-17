@@ -2,13 +2,13 @@
 import { ref, computed, onMounted } from 'vue'
 import {
   Lock, Loader2, LogOut, CalendarDays, BarChart3, Plus, Trash2,
-  X, RotateCcw, AlertCircle, Mail, Phone,
+  X, RotateCcw, AlertCircle, Mail, Phone, Ban,
 } from 'lucide-vue-next'
 import {
   fetchBookings, cancelBooking, restoreBooking, fetchExtraSlots,
   addExtraSlot, deleteExtraSlot, signInAdmin, signOutAdmin, currentSession,
 } from '@/lib/bookings'
-import type { Booking, ExtraSlot } from '@/lib/bookings'
+import type { Booking, ExtraSlot, SlotKind } from '@/lib/bookings'
 import { formatDateFR, toISODate, toMinutes, toHHMM } from '@/lib/availability'
 
 const authed = ref(false)
@@ -23,7 +23,7 @@ const loading = ref(false)
 const error = ref('')
 const showCancelled = ref(false)
 
-const newSlot = ref({ date: '', start: '09:00', end: '18:00' })
+const newSlot = ref({ date: '', start: '09:00', end: '18:00', kind: 'open' as SlotKind })
 const slotError = ref('')
 
 const today = toISODate(new Date())
@@ -85,7 +85,7 @@ async function onAddSlot() {
   slotError.value = ''
   if (!newSlot.value.date) { slotError.value = 'Choisissez une date.'; return }
   if (newSlot.value.end <= newSlot.value.start) { slotError.value = "L'heure de fin doit être après l'heure de début."; return }
-  await addExtraSlot(newSlot.value.date, newSlot.value.start, newSlot.value.end)
+  await addExtraSlot(newSlot.value.date, newSlot.value.start, newSlot.value.end, newSlot.value.kind)
   newSlot.value.date = ''
   await load()
 }
@@ -124,39 +124,51 @@ const stats = computed(() => ({
 
 const endTime = (b: Booking) => toHHMM(toMinutes(b.time) + Number(b.duration_h) * 60)
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
+/** Verre dépoli clair : le dégradé du fond reste visible autour, le texte blanc reste lisible dessus. */
+const glassWhite =
+  'background: rgba(255,255,255,0.14); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); border: 1px solid rgba(255,255,255,0.3)'
 </script>
 
 <template>
-  <div class="min-h-screen px-4 py-10" style="background: #0d0502">
-    <div class="max-w-4xl mx-auto">
+  <div class="relative min-h-screen px-4 py-10" style="background: #0d0502">
+    <!-- Dégradé de fond -->
+    <div
+      class="fixed inset-0 pointer-events-none bg-cover bg-center"
+      style="background-image: url('/images/background_admin.png')"
+    ></div>
+    <!-- Voile sombre : garde le texte lisible sur un fond très saturé -->
+    <div class="fixed inset-0 pointer-events-none" style="background: rgba(13,5,2,0.55)"></div>
+
+    <div class="relative max-w-4xl mx-auto">
 
       <!-- ===== Connexion ===== -->
       <div v-if="!authed" class="max-w-sm mx-auto pt-16">
         <div class="text-center mb-8">
           <div class="inline-flex items-center justify-center w-14 h-14 rounded-full mb-5"
-            style="background: rgba(240,216,23,0.15)">
+            style="background: rgba(240,216,23,0.28)">
             <Lock class="w-6 h-6" style="color: #f0d817" />
           </div>
           <h1 class="text-2xl font-bold text-white mb-1" style="font-family: Montserrat, sans-serif">
             Espace admin
           </h1>
-          <p class="text-white/40 text-sm">Accès réservé</p>
+          <p class="text-white/70 text-sm">Accès réservé</p>
         </div>
 
         <form
           class="rounded-3xl p-6 space-y-4"
-          style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08)"
+          :style="glassWhite"
           @submit.prevent="login"
         >
           <div>
-            <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5 text-white/50">
+            <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5 text-white/80">
               Mot de passe
             </label>
             <input
               v-model="password"
               type="password"
               autocomplete="current-password"
-              class="w-full min-w-0 px-4 py-3 rounded-xl text-sm outline-none bg-white/10 text-white border border-white/10 focus:ring-2 focus:ring-[#f0d817]/50"
+              class="w-full min-w-0 px-4 py-3 rounded-xl text-sm outline-none bg-white/15 text-white border border-white/30 focus:ring-2 focus:ring-[#f0d817]/60"
             />
           </div>
 
@@ -184,7 +196,7 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
             Mon espace
           </h1>
           <button
-            class="flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors"
+            class="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
             @click="logout"
           >
             <LogOut class="w-4 h-4" />
@@ -193,7 +205,7 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
         </div>
 
         <!-- Onglets -->
-        <div class="flex gap-1 rounded-2xl p-1 mb-8" style="background: rgba(255,255,255,0.06)">
+        <div class="flex gap-1 rounded-2xl p-1 mb-8" :style="glassWhite">
           <button
             v-for="t in [
               { id: 'agenda', label: 'Agenda', icon: CalendarDays },
@@ -204,7 +216,7 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
             class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all"
             :style="tab === t.id
               ? 'background: #f0d817; color: #0d0502'
-              : 'background: transparent; color: rgba(255,255,255,0.5)'"
+              : 'background: transparent; color: rgba(255,255,255,0.85)'"
             @click="tab = t.id as typeof tab"
           >
             <component :is="t.icon" class="w-4 h-4" />
@@ -212,7 +224,7 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
           </button>
         </div>
 
-        <p v-if="loading" class="text-white/40 text-sm">Chargement…</p>
+        <p v-if="loading" class="text-white/70 text-sm">Chargement…</p>
         <p v-else-if="error" class="flex items-center gap-2 text-red-400 text-sm">
           <AlertCircle class="w-4 h-4" /> {{ error }}
         </p>
@@ -224,7 +236,7 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
               class="px-4 py-2 rounded-full text-xs font-semibold transition-all"
               :style="!showCancelled
                 ? 'background: #f0d817; color: #0d0502'
-                : 'background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6)'"
+                : `${glassWhite}; color: rgba(255,255,255,0.85)`"
               @click="showCancelled = false"
             >
               À venir ({{ upcoming.length }})
@@ -233,14 +245,14 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
               class="px-4 py-2 rounded-full text-xs font-semibold transition-all"
               :style="showCancelled
                 ? 'background: #f0d817; color: #0d0502'
-                : 'background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6)'"
+                : `${glassWhite}; color: rgba(255,255,255,0.85)`"
               @click="showCancelled = true"
             >
               Annulés ({{ cancelled.length }})
             </button>
           </div>
 
-          <p v-if="!grouped.length" class="text-white/40 text-sm py-10 text-center">
+          <p v-if="!grouped.length" class="text-white/70 text-sm py-10 text-center">
             {{ showCancelled ? 'Aucun rendez-vous annulé.' : 'Aucun rendez-vous à venir.' }}
           </p>
 
@@ -254,7 +266,7 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
                 v-for="b in items"
                 :key="b.id"
                 class="rounded-2xl p-5"
-                style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08)"
+                :style="glassWhite"
               >
                 <div class="flex items-start justify-between gap-4 mb-3">
                   <div class="min-w-0">
@@ -265,8 +277,8 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
                   </div>
                   <button
                     v-if="b.status === 'confirmed'"
-                    class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-red-300 transition-colors hover:text-red-200"
-                    style="background: rgba(248,113,113,0.12)"
+                    class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-red-100 transition-colors hover:text-white"
+                    style="background: rgba(220,38,38,0.55); border: 1px solid rgba(255,255,255,0.2)"
                     @click="onCancel(b)"
                   >
                     <X class="w-3.5 h-3.5" />
@@ -275,7 +287,7 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
                   <button
                     v-else
                     class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
-                    style="background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7)"
+                    style="background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.3); color: #fff"
                     @click="onRestore(b)"
                   >
                     <RotateCcw class="w-3.5 h-3.5" />
@@ -284,7 +296,7 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
                 </div>
 
                 <p class="text-white font-semibold text-sm">{{ b.name }}</p>
-                <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs text-white/50">
+                <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs text-white/75">
                   <a :href="`tel:${b.phone}`" class="flex items-center gap-1.5 hover:text-white transition-colors">
                     <Phone class="w-3.5 h-3.5" /> {{ b.phone }}
                   </a>
@@ -293,15 +305,15 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
                   </a>
                 </div>
 
-                <p v-if="b.notes" class="text-xs text-white/50 mt-3 italic">« {{ b.notes }} »</p>
+                <p v-if="b.notes" class="text-xs text-white/75 mt-3 italic">« {{ b.notes }} »</p>
 
-                <div class="flex items-center gap-3 mt-3 pt-3 text-xs" style="border-top: 1px solid rgba(255,255,255,0.06)">
-                  <span class="text-white/50">{{ b.price }}€</span>
+                <div class="flex items-center gap-3 mt-3 pt-3 text-xs" style="border-top: 1px solid rgba(255,255,255,0.18)">
+                  <span class="text-white/75">{{ b.price }}€</span>
                   <span
                     class="px-2 py-0.5 rounded-full font-semibold"
                     :style="b.paid
-                      ? 'background: rgba(62,179,8,0.15); color: #6ee06e'
-                      : 'background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5)'"
+                      ? 'background: rgba(34,150,20,0.6); border: 1px solid rgba(255,255,255,0.25); color: #ffffff'
+                      : 'background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.9)'"
                   >
                     Acompte {{ b.deposit }}€ {{ b.paid ? 'réglé' : 'en attente' }}
                   </span>
@@ -323,21 +335,41 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
             { label: 'Annulations', value: stats.cancelled },
           ]" :key="card.label"
             class="rounded-2xl p-5"
-            style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08)"
+            :style="glassWhite"
           >
-            <p class="text-xs uppercase tracking-wide text-white/40 mb-2">{{ card.label }}</p>
+            <p class="text-xs uppercase tracking-wide text-white/75 mb-2">{{ card.label }}</p>
             <p class="text-2xl font-extrabold" style="color: #f0d817">{{ card.value }}</p>
           </div>
         </div>
 
         <!-- ===== Créneaux ===== -->
         <div v-else>
-          <p class="text-white/50 text-sm mb-6">
+          <p class="text-white/70 text-sm mb-6">
             Les samedis et dimanches de 8h à 18h sont ouverts automatiquement.
-            Ajoutez ici des créneaux supplémentaires (un autre jour, ou des horaires élargis).
+            Ouvrez ici des créneaux en plus (un autre jour, des horaires élargis),
+            ou fermez une plage pendant laquelle vous n'êtes pas disponible.
           </p>
 
-          <div class="rounded-2xl p-5 mb-8" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08)">
+          <div class="rounded-2xl p-5 mb-8" :style="glassWhite">
+            <div class="flex gap-1 rounded-xl p-1 mb-4" style="background: rgba(0,0,0,0.25)">
+              <button
+                v-for="k in [
+                  { id: 'open', label: 'Ouvrir une plage' },
+                  { id: 'closed', label: 'Fermer une plage' },
+                ]"
+                :key="k.id"
+                class="flex-1 py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all"
+                :style="newSlot.kind === k.id
+                  ? (k.id === 'open'
+                    ? 'background: #f0d817; color: #0d0502'
+                    : 'background: rgba(220,38,38,0.85); color: #fff')
+                  : 'background: transparent; color: rgba(255,255,255,0.8)'"
+                @click="newSlot.kind = k.id as SlotKind"
+              >
+                {{ k.label }}
+              </button>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
               <div class="min-w-0">
                 <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5 text-white/50">Date</label>
@@ -374,30 +406,42 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
             <button
               class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-              style="background: #f0d817; color: #0d0502"
+              :style="newSlot.kind === 'open'
+                ? 'background: #f0d817; color: #0d0502'
+                : 'background: rgba(220,38,38,0.85); color: #fff'"
               @click="onAddSlot"
             >
-              <Plus class="w-4 h-4" />
-              Ouvrir ce créneau
+              <component :is="newSlot.kind === 'open' ? Plus : Ban" class="w-4 h-4" />
+              {{ newSlot.kind === 'open' ? 'Ouvrir ce créneau' : 'Fermer ce créneau' }}
             </button>
           </div>
 
           <h2 class="font-semibold text-xs uppercase tracking-widest mb-3" style="color: #f0d817">
-            Créneaux ajoutés
+            Créneaux personnalisés
           </h2>
-          <p v-if="!extraSlots.length" class="text-white/40 text-sm">Aucun créneau supplémentaire.</p>
+          <p v-if="!extraSlots.length" class="text-white/70 text-sm">Aucun créneau personnalisé.</p>
           <ul v-else class="space-y-2">
             <li
               v-for="slot in extraSlots"
               :key="slot.id"
-              class="flex items-center justify-between gap-4 rounded-xl px-4 py-3 text-sm"
-              style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08)"
+              class="flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm"
+              :style="glassWhite"
             >
-              <span class="text-white/70 min-w-0">
-                {{ capitalize(formatDateFR(slot.date)) }}
-                <span class="text-white/40"> · {{ slot.start_time.slice(0, 5) }} – {{ slot.end_time.slice(0, 5) }}</span>
+              <span class="min-w-0 flex items-center gap-2 flex-wrap">
+                <span
+                  class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
+                  :style="slot.kind === 'open'
+                    ? 'background: rgba(240,216,23,0.9); color: #0d0502'
+                    : 'background: rgba(220,38,38,0.85); color: #fff'"
+                >
+                  {{ slot.kind === 'open' ? 'Ouvert' : 'Fermé' }}
+                </span>
+                <span class="text-white/90">
+                  {{ capitalize(formatDateFR(slot.date)) }}
+                  <span class="text-white/70"> · {{ slot.start_time.slice(0, 5) }} – {{ slot.end_time.slice(0, 5) }}</span>
+                </span>
               </span>
-              <button class="shrink-0 text-white/30 hover:text-red-400 transition-colors" @click="onRemoveSlot(slot.id)">
+              <button class="shrink-0 text-white/60 hover:text-red-300 transition-colors" @click="onRemoveSlot(slot.id)">
                 <Trash2 class="w-4 h-4" />
               </button>
             </li>

@@ -25,11 +25,14 @@ export type NewBooking = Omit<Booking, 'id' | 'created_at' | 'status'>
 /** Vue publique : uniquement les créneaux occupés, sans aucune donnée personnelle. */
 export type BusySlot = { date: string; time: string; duration_h: number }
 
+export type SlotKind = 'open' | 'closed'
+
 export type ExtraSlot = {
   id: string
   date: string
   start_time: string
   end_time: string
+  kind: SlotKind
 }
 
 type BusySlotRow = { slot_date: string; slot_time: string; slot_duration_h: number }
@@ -47,7 +50,7 @@ export async function fetchBusySlots(from: string, to: string): Promise<BusySlot
 export async function fetchExtraSlots(): Promise<ExtraSlot[]> {
   const { data, error } = await supabase
     .from('extra_slots')
-    .select('id, date, start_time, end_time')
+    .select('id, date, start_time, end_time, kind')
     .order('date')
   if (error) throw error
   return data ?? []
@@ -78,10 +81,15 @@ export async function restoreBooking(id: string): Promise<void> {
   if (error) throw error
 }
 
-export async function addExtraSlot(date: string, start: string, end: string): Promise<void> {
+export async function addExtraSlot(
+  date: string,
+  start: string,
+  end: string,
+  kind: SlotKind,
+): Promise<void> {
   const { error } = await supabase
     .from('extra_slots')
-    .insert({ date, start_time: start, end_time: end })
+    .insert({ date, start_time: start, end_time: end, kind })
   if (error) throw error
 }
 

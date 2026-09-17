@@ -39,7 +39,9 @@ alter table public.bookings add constraint bookings_no_overlap
     ) with &&
   ) where (status = 'confirmed');
 
--- Créneaux ouverts en plus du week-end, ajoutés depuis l'espace admin
+-- Créneaux personnalisés ajoutés depuis l'espace admin :
+--   kind = 'open'   -> ouvre une plage en plus du week-end
+--   kind = 'closed' -> ferme une plage, même un samedi ou un dimanche
 create table if not exists public.extra_slots (
   id          uuid primary key default gen_random_uuid(),
   created_at  timestamptz not null default now(),
@@ -48,6 +50,10 @@ create table if not exists public.extra_slots (
   end_time    time not null,
   check (end_time > start_time)
 );
+
+alter table public.extra_slots add column if not exists kind text not null default 'open';
+alter table public.extra_slots drop constraint if exists extra_slots_kind_check;
+alter table public.extra_slots add constraint extra_slots_kind_check check (kind in ('open', 'closed'));
 
 -- ---------- Row Level Security ----------
 
