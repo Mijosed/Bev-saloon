@@ -2,21 +2,15 @@
 import { useRouter } from 'vue-router'
 import { ChevronRight, ArrowLeft } from 'lucide-vue-next'
 import ConditionsCard from '@/components/ConditionsCard.vue'
+import { servicesByType } from '@/data/services'
 
 const router = useRouter()
 
-const installations = [
-  { name: 'Cheveux courts', price: 300 },
-  { name: 'Cheveux mi-longs', price: 400 },
-  { name: 'Cheveux longs', price: 500 },
-  { name: 'Cheveux très longs', price: 800 },
-]
+const hairServices = servicesByType('coiffure')
+const installations = hairServices.filter((s) => s.group === 'installation')
+const resserrages = hairServices.filter((s) => s.group === 'resserrage')
 
-const resserrages = [
-  { name: 'De 200 à 300 locks', price: 80 },
-  { name: 'De 300 à 500 locks', price: 100 },
-  { name: 'De 500 à 600 locks', price: 200 },
-]
+const label = (s: { shortName?: string; name: string }) => s.shortName ?? s.name
 
 const conditionsItems = [
   {
@@ -92,17 +86,17 @@ const reserve = (service: string) => {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div
           v-for="service in installations"
-          :key="service.name"
+          :key="service.id"
           class="group relative rounded-2xl p-6 border transition-all duration-300 cursor-pointer hover:border-[#f0d817]/40 hover:-translate-y-1"
           style="background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08)"
-          @click="reserve(service.name)"
+          @click="reserve(service.id)"
         >
           <!-- Left accent bar -->
           <div class="absolute left-0 top-6 bottom-6 w-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             style="background: linear-gradient(to bottom, #e20d0d, #f0d817, #3eb308)">
           </div>
 
-          <h3 class="font-bold text-white text-base mb-6 leading-snug">{{ service.name }}</h3>
+          <h3 class="font-bold text-white text-base mb-6 leading-snug">{{ label(service) }}</h3>
 
           <div class="flex items-center justify-between">
             <span class="text-2xl font-extrabold" style="color: #f0d817">{{ service.price }}€</span>
@@ -127,17 +121,17 @@ const reserve = (service: string) => {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div
           v-for="service in resserrages"
-          :key="service.name"
+          :key="service.id"
           class="group relative rounded-2xl p-6 border transition-all duration-300 cursor-pointer hover:border-[#f0d817]/40 hover:-translate-y-1"
           style="background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08)"
-          @click="reserve(service.name)"
+          @click="reserve(service.id)"
         >
           <!-- Left accent bar -->
           <div class="absolute left-0 top-6 bottom-6 w-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             style="background: linear-gradient(to bottom, #e20d0d, #f0d817, #3eb308)">
           </div>
 
-          <h3 class="font-bold text-white text-base mb-6 leading-snug">{{ service.name }}</h3>
+          <h3 class="font-bold text-white text-base mb-6 leading-snug">{{ label(service) }}</h3>
 
           <div class="flex items-center justify-between">
             <span class="text-2xl font-extrabold" style="color: #f0d817">{{ service.price }}€</span>

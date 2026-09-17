@@ -8,6 +8,7 @@ const router = createRouter({
     { path: '/coiffure', name: 'hair', component: () => import('@/views/HairView.vue') },
     { path: '/ongles', name: 'nails', component: () => import('@/views/NailsView.vue') },
     { path: '/reservation', name: 'reservation', component: () => import('@/views/ReservationView.vue') },
+    { path: '/admin', name: 'admin', component: () => import('@/views/AdminView.vue') },
   ],
   scrollBehavior() {
     return { top: 0 }

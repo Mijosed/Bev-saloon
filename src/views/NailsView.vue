@@ -2,15 +2,11 @@
 import { useRouter } from 'vue-router'
 import { ChevronRight, ArrowLeft } from 'lucide-vue-next'
 import ConditionsCard from '@/components/ConditionsCard.vue'
+import { servicesByType } from '@/data/services'
 
 const router = useRouter()
 
-const services = [
-  { name: 'Manucure simple', subtitle: 'VSP / French — Taille S, M ou L', price: 30, popular: false },
-  { name: 'Manucure Nail Art', subtitle: 'Pose avec décorations personnalisées', price: 50, popular: true },
-  { name: 'Dépose', subtitle: '', price: 10, popular: false },
-  { name: 'Dépose extérieure', subtitle: '(pas de résine)', price: 15, popular: false },
-]
+const services = servicesByType('ongles')
 
 const conditionsItems = [
   {
@@ -46,6 +42,8 @@ const conditionsItems = [
 const reserve = (service: string) => {
   router.push({ path: '/reservation', query: { type: 'ongles', service } })
 }
+
+const label = (s: { shortName?: string; name: string }) => s.shortName ?? s.name
 </script>
 
 <template>
@@ -88,12 +86,12 @@ const reserve = (service: string) => {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div
           v-for="service in services"
-          :key="service.name"
+          :key="service.id"
           class="group relative rounded-2xl p-6 border transition-all duration-300 cursor-pointer hover:-translate-y-1"
           :class="service.popular
             ? 'border-pink-200 bg-white shadow-md shadow-pink-100'
             : 'border-pink-100 bg-white/70 hover:bg-white hover:border-pink-200'"
-          @click="reserve(service.name)"
+          @click="reserve(service.id)"
         >
           <!-- Popular badge -->
           <span
@@ -109,7 +107,7 @@ const reserve = (service: string) => {
             style="background: linear-gradient(to bottom, #ec4899, #f9a8d4)">
           </div>
 
-          <h3 class="font-bold text-base mb-3 leading-snug pr-16" style="color: #9d174d">{{ service.name }}</h3>
+          <h3 class="font-bold text-base mb-3 leading-snug pr-16" style="color: #9d174d">{{ label(service) }}</h3>
 
           <div v-if="service.subtitle" class="text-xs text-pink-300 mb-4">
             {{ service.subtitle }}

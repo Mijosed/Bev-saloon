@@ -1,0 +1,98 @@
+import type { BusySlot, ExtraSlot } from './bookings'
+
+/** Ouverture par défaut : samedi et dimanche, 8h–18h. */
+export const OPEN_START = 8 * 60
+export const OPEN_END = 18 * 60
+/** Granularité des heures de début proposées. */
+const STEP = 30
+
+export type Interval = { start: number; end: number }
+
+export function toMinutes(time: string): number {
+  const [h = 0, m = 0] = time.split(':').map(Number)
+  return h * 60 + m
+}
+
+export function toHHMM(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+/** Parse "YYYY-MM-DD" en date locale (évite le décalage UTC de new Date(string)). */
+export function parseDate(date: string): Date {
+  const [y = 1970, m = 1, d = 1] = date.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+export function toISODate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+export function isWeekend(date: string): boolean {
+  const day = parseDate(date).getDay()
+  return day === 0 || day === 6
+}
+
+export function formatDateFR(date: string): string {
+  return parseDate(date).toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+function mergeIntervals(list: Interval[]): Interval[] {
+  const sorted = [...list].sort((a, b) => a.start - b.start)
+  const merged: Interval[] = []
+  for (const iv of sorted) {
+    const last = merged[merged.length - 1]
+    if (last && iv.start <= last.end) last.end = Math.max(last.end, iv.end)
+    else merged.push({ ...iv })
+  }
+  return merged
+}
+
+/** Plages ouvertes pour une date : week-end par défaut + créneaux ajoutés par l'admin. */
+export function openWindows(date: string, extra: ExtraSlot[]): Interval[] {
+  const windows: Interval[] = []
+  if (isWeekend(date)) windows.push({ start: OPEN_START, end: OPEN_END })
+  for (const slot of extra) {
+    if (slot.date === date) {
+      windows.push({ start: toMinutes(slot.start_time), end: toMinutes(slot.end_time) })
+    }
+  }
+  return mergeIntervals(windows)
+}
+
+export function isDateOpen(date: string, extra: ExtraSlot[]): boolean {
+  return openWindows(date, extra).length > 0
+}
+
+/**
+ * Heures de début possibles pour une prestation d'une durée donnée :
+ * la prestation doit tenir entièrement dans une plage ouverte
+ * et ne chevaucher aucun rendez-vous déjà confirmé.
+ */
+export function availableStarts(
+  date: string,
+  durationH: number,
+  busy: BusySlot[],
+  extra: ExtraSlot[],
+): string[] {
+  const need = durationH * 60
+  const taken = busy
+    .filter((b) => b.date === date)
+    .map((b) => ({ start: toMinutes(b.time), end: toMinutes(b.time) + b.duration_h * 60 }))
+
+  const starts: string[] = []
+  for (const window of openWindows(date, extra)) {
+    for (let start = window.start; start + need <= window.end; start += STEP) {
+      const end = start + need
+      const overlaps = taken.some((t) => start < t.end && end > t.start)
+      if (!overlaps) starts.push(toHHMM(start))
+    }
+  }
+  return starts
+}

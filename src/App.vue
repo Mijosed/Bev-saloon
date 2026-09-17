@@ -7,6 +7,7 @@ import AppFooter from '@/components/AppFooter.vue'
 const route = useRoute()
 
 const isHome = computed(() => route.name === 'home')
+const isAdmin = computed(() => route.name === 'admin')
 
 const theme = computed<'hair' | 'nails'>(() => {
   if (route.name === 'nails') return 'nails'
@@ -17,10 +18,10 @@ const theme = computed<'hair' | 'nails'>(() => {
 
 <template>
   <div class="min-h-screen flex flex-col">
-    <AppNavbar :transparent="isHome" :theme="theme" />
-    <main :class="isHome ? '' : 'pt-16'">
+    <AppNavbar v-if="!isAdmin" :transparent="isHome" :theme="theme" />
+    <main :class="isHome || isAdmin ? '' : 'pt-16'">
       <RouterView />
     </main>
-    <AppFooter v-if="!isHome" :theme="theme" />
+    <AppFooter v-if="!isHome && !isAdmin" :theme="theme" />
   </div>
 </template>
