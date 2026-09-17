@@ -71,9 +71,11 @@ export function isDateOpen(date: string, extra: ExtraSlot[]): boolean {
 }
 
 /**
- * Heures de début possibles pour une prestation d'une durée donnée :
- * la prestation doit tenir entièrement dans une plage ouverte
- * et ne chevaucher aucun rendez-vous déjà confirmé.
+ * Heures de début possibles pour une prestation d'une durée donnée.
+ *
+ * Toute la plage d'ouverture est proposée, quelle que soit la durée : une
+ * prestation peut se terminer après l'heure de fermeture. La durée sert
+ * uniquement à écarter les créneaux qui chevaucheraient un rendez-vous déjà pris.
  */
 export function availableStarts(
   date: string,
@@ -88,7 +90,7 @@ export function availableStarts(
 
   const starts: string[] = []
   for (const window of openWindows(date, extra)) {
-    for (let start = window.start; start + need <= window.end; start += STEP) {
+    for (let start = window.start; start <= window.end; start += STEP) {
       const end = start + need
       const overlaps = taken.some((t) => start < t.end && end > t.start)
       if (!overlaps) starts.push(toHHMM(start))
