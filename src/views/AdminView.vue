@@ -312,7 +312,7 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
         </div>
 
         <!-- ===== Récap ===== -->
-        <div v-else-if="tab === 'recap'" class="grid grid-cols-2 gap-3">
+        <div v-else-if="tab === 'recap'" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           <div v-for="card in [
             { label: 'RDV à venir', value: stats.upcoming },
             { label: 'Chiffre d\'affaires prévu', value: `${stats.revenue}€` },
