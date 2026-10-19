@@ -76,6 +76,12 @@ export async function cancelBooking(id: string): Promise<void> {
   if (error) throw error
 }
 
+/** PayPal.Me ne notifie pas le site : l'acompte est pointé à la main depuis l'admin. */
+export async function setBookingPaid(id: string, paid: boolean): Promise<void> {
+  const { error } = await supabase.from('bookings').update({ paid }).eq('id', id)
+  if (error) throw error
+}
+
 export async function restoreBooking(id: string): Promise<void> {
   const { error } = await supabase.from('bookings').update({ status: 'confirmed' }).eq('id', id)
   if (error) throw error

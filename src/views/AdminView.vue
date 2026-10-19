@@ -5,7 +5,7 @@ import {
   X, RotateCcw, AlertCircle, Mail, Phone, Ban,
 } from 'lucide-vue-next'
 import {
-  fetchBookings, cancelBooking, restoreBooking, fetchExtraSlots,
+  fetchBookings, cancelBooking, restoreBooking, setBookingPaid, fetchExtraSlots,
   addExtraSlot, deleteExtraSlot, signInAdmin, signOutAdmin, currentSession,
 } from '@/lib/bookings'
 import type { Booking, ExtraSlot, SlotKind } from '@/lib/bookings'
@@ -73,6 +73,11 @@ async function logout() {
 async function onCancel(booking: Booking) {
   if (!confirm(`Annuler le rendez-vous de ${booking.name} le ${formatDateFR(booking.date)} à ${booking.time} ?\n\nLe créneau redeviendra disponible à la réservation.`)) return
   await cancelBooking(booking.id)
+  await load()
+}
+
+async function onTogglePaid(booking: Booking) {
+  await setBookingPaid(booking.id, !booking.paid)
   await load()
 }
 
@@ -309,14 +314,16 @@ const glassWhite =
 
                 <div class="flex items-center gap-3 mt-3 pt-3 text-xs" style="border-top: 1px solid rgba(255,255,255,0.18)">
                   <span class="text-white/75">{{ b.price }}€</span>
-                  <span
-                    class="px-2 py-0.5 rounded-full font-semibold"
+                  <button
+                    class="px-2 py-0.5 rounded-full font-semibold transition-all hover:scale-105"
                     :style="b.paid
                       ? 'background: rgba(34,150,20,0.6); border: 1px solid rgba(255,255,255,0.25); color: #ffffff'
                       : 'background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.9)'"
+                    :title="b.paid ? 'Marquer comme non réglé' : 'Marquer comme réglé'"
+                    @click="onTogglePaid(b)"
                   >
                     Acompte {{ b.deposit }}€ {{ b.paid ? 'réglé' : 'en attente' }}
-                  </span>
+                  </button>
                 </div>
               </div>
             </div>
