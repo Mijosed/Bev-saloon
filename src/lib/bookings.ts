@@ -20,7 +20,8 @@ export type Booking = {
   notes: string
 }
 
-export type NewBooking = Omit<Booking, 'id' | 'created_at' | 'status'>
+/** L'id est généré côté client : il doit être connu avant le paiement pour que Stripe s'y réfère. */
+export type NewBooking = Omit<Booking, 'created_at' | 'status'>
 
 /** Vue publique : uniquement les créneaux occupés, sans aucune donnée personnelle. */
 export type BusySlot = { date: string; time: string; duration_h: number }
@@ -76,7 +77,25 @@ export async function cancelBooking(id: string): Promise<void> {
   if (error) throw error
 }
 
-/** PayPal.Me ne notifie pas le site : l'acompte est pointé à la main depuis l'admin. */
+/**
+ * Ouvre une session de paiement Stripe pour l'acompte.
+ * Le montant est fixé par la fonction serveur, jamais envoyé par le navigateur.
+ */
+export async function createCheckoutSession(booking: NewBooking): Promise<string> {
+  const { data, error } = await supabase.functions.invoke('create-checkout', {
+    body: {
+      booking_id: booking.id,
+      service_id: booking.service_id,
+      service: booking.service,
+      email: booking.email,
+    },
+  })
+  if (error) throw error
+  if (!data?.url) throw new Error('URL de paiement manquante')
+  return data.url as string
+}
+
+/** Rattrapage manuel : Stripe coche l'acompte tout seul, ce bouton sert aux cas particuliers. */
 export async function setBookingPaid(id: string, paid: boolean): Promise<void> {
   const { error } = await supabase.from('bookings').update({ paid }).eq('id', id)
   if (error) throw error

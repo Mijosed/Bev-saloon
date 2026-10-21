@@ -6,8 +6,7 @@ import {
   Instagram, ShieldCheck, Loader2, AlertCircle, ArrowLeft,
 } from 'lucide-vue-next'
 import { servicesByType, serviceById } from '@/data/services'
-import { fetchBusySlots, fetchExtraSlots, createBooking } from '@/lib/bookings'
-import { paypalMe } from '@/lib/supabase'
+import { fetchBusySlots, fetchExtraSlots, createBooking, createCheckoutSession } from '@/lib/bookings'
 import type { BusySlot, ExtraSlot } from '@/lib/bookings'
 import { availableStarts, isDateOpen, toISODate, formatDateFR } from '@/lib/availability'
 
@@ -101,6 +100,13 @@ async function loadAvailability() {
 }
 
 onMounted(async () => {
+  // Retour depuis Stripe
+  if (route.query.paid === '1') step.value = 'done'
+  if (route.query.canceled === '1') {
+    payError.value = "Paiement annulé. Votre créneau reste pré-réservé un court instant : "
+      + "relancez le paiement pour le confirmer."
+  }
+
   if (route.query.type === 'ongles') form.value.type = 'ongles'
   await loadAvailability()
   const wanted = route.query.service
@@ -125,21 +131,16 @@ function goToPayment() {
   step.value = 'payment'
 }
 
-const paypalLink = computed(() => {
-  const service = selected.value
-  if (!service) return ''
-  return `https://paypal.me/${paypalMe}/${service.deposit}EUR`
-})
-
 async function pay() {
   const service = selected.value
   if (!service) return
   paying.value = true
   payError.value = ''
   try {
-    // PayPal.Me ne renvoie aucune confirmation au site : le rendez-vous est créé
-    // avec l'acompte « en attente », que Bev pointe ensuite depuis l'admin.
-    await createBooking({
+    // Le rendez-vous est créé avant le paiement pour bloquer le créneau.
+    // Stripe le repassera en « acompte réglé » via le webhook.
+    const booking = {
+      id: crypto.randomUUID(),
       name: form.value.name.trim(),
       email: form.value.email.trim(),
       phone: form.value.phone.trim(),
@@ -153,13 +154,13 @@ async function pay() {
       deposit: service.deposit,
       paid: false,
       notes: form.value.notes.trim(),
-    })
-    window.open(paypalLink.value, '_blank', 'noopener')
-    step.value = 'done'
+    }
+
+    await createBooking(booking)
+    window.location.href = await createCheckoutSession(booking)
   } catch {
     payError.value = "Ce créneau vient d'être pris ou une erreur est survenue. Merci de choisir un autre horaire."
     await loadAvailability()
-  } finally {
     paying.value = false
   }
 }
@@ -190,22 +191,12 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
           <CheckCircle class="w-10 h-10" :style="isHair ? 'color: #f0d817' : 'color: #ec4899'" />
         </div>
         <h2 class="text-2xl font-bold mb-3" :class="isHair ? 'text-white' : 'text-[#9d174d]'">
-          Créneau réservé !
+          Rendez-vous confirmé !
         </h2>
-        <p :class="isHair ? 'text-white/60' : 'text-pink-400'" class="mb-4">
-          Votre créneau est bloqué. Il sera définitivement confirmé
-          dès réception de votre acompte sur PayPal.
+        <p :class="isHair ? 'text-white/60' : 'text-pink-400'" class="mb-8">
+          Votre acompte a bien été reçu et votre créneau est réservé.
+          Un reçu vous a été envoyé par email.
         </p>
-        <a
-          :href="paypalLink"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 text-sm font-semibold underline underline-offset-4 mb-8"
-          :style="isHair ? 'color: #f0d817' : 'color: #ec4899'"
-        >
-          L'onglet PayPal ne s'est pas ouvert ? Cliquez ici
-        </a>
-        <br />
         <button
           class="px-8 py-3 rounded-full font-bold text-sm transition-all hover:scale-105"
           :style="isHair ? 'background: #f0d817; color: #0d0502' : 'background: #ec4899; color: white'"
@@ -286,21 +277,16 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
           </p>
         </div>
 
-        <!-- PayPal (simulation) -->
+        <!-- Paiement Stripe -->
         <div
           class="rounded-3xl p-6 sm:p-8"
           :style="isHair
             ? 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08)'
             : 'background: white; border: 1px solid #fce7f3; box-shadow: 0 4px 24px rgba(236,72,153,0.08)'"
         >
-          <div class="flex items-center justify-center gap-1 mb-1">
-            <span class="font-extrabold text-xl" style="color: #003087">Pay</span><span
-              class="font-extrabold text-xl" style="color: #009cde">Pal</span>
-          </div>
           <p class="text-center text-xs mb-6" :class="isHair ? 'text-white/50' : 'text-pink-400'">
-            En validant, votre créneau est réservé et PayPal s'ouvre dans un nouvel onglet.
-            <strong class="font-semibold">Indiquez votre nom</strong> dans le message PayPal
-            pour que votre acompte soit identifié.
+            Vous allez être redirigée vers notre page de paiement sécurisée
+            pour régler l'acompte par carte bancaire.
           </p>
 
           <div v-if="payError"
@@ -311,19 +297,19 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
           </div>
 
           <button
-            class="w-full flex items-center justify-center gap-2 py-4 rounded-full font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100"
-            style="background: #ffc439; color: #003087"
+            class="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-base transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:hover:scale-100"
+            style="background: #635bff; color: #fff"
             :disabled="paying"
             @click="pay"
           >
             <Loader2 v-if="paying" class="w-5 h-5 animate-spin" />
-            {{ paying ? 'Réservation en cours…' : `Réserver et payer ${selected?.deposit}€ sur PayPal` }}
+            {{ paying ? 'Redirection…' : `Payer l'acompte de ${selected?.deposit}€` }}
           </button>
 
           <p class="flex items-center justify-center gap-1.5 text-xs mt-4"
             :class="isHair ? 'text-white/50' : 'text-pink-400'">
             <ShieldCheck class="w-3.5 h-3.5" />
-            Paiement sécurisé via PayPal
+            Paiement sécurisé par Stripe
           </p>
         </div>
       </template>
