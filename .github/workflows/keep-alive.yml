@@ -1,0 +1,33 @@
+# Supabase met un projet gratuit en veille après 7 jours sans requête.
+# Cette tâche interroge la base tous les 3 jours pour qu'il reste actif.
+name: Garder Supabase actif
+
+on:
+  schedule:
+    - cron: '0 6 */3 * *'
+  workflow_dispatch: # permet aussi de le lancer à la main depuis l'onglet Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Interroger la base
+        env:
+          # Clé « publishable » : elle est déjà publique (incluse dans le code du
+          # site livré au navigateur) et protégée par les règles RLS.
+          # Ne JAMAIS mettre la clé « secret » ici.
+          SUPABASE_URL: https://dxpdnlhfylbfpwewtuwr.supabase.co
+          SUPABASE_KEY: sb_publishable_E6FGqglV0D_2EtjfmI3G9A_i3pLwiMD
+        run: |
+          code=$(curl -s -o /tmp/reponse.txt -w '%{http_code}' \
+            "$SUPABASE_URL/rest/v1/extra_slots?select=id&limit=1" \
+            -H "apikey: $SUPABASE_KEY")
+
+          echo "Code HTTP : $code"
+          cat /tmp/reponse.txt
+
+          if [ "$code" != "200" ]; then
+            echo "::error::Supabase n'a pas repondu correctement (HTTP $code)"
+            exit 1
+          fi
+          echo "Base active."
