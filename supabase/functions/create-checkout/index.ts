@@ -6,7 +6,9 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   httpClient: Stripe.createFetchHttpClient(),
 })
 
-const siteUrl = Deno.env.get('SITE_URL') ?? 'http://localhost:5173'
+// Pas de repli silencieux vers localhost : en production, une SITE_URL absente
+// renverrait la cliente sur une page morte après son paiement.
+const siteUrl = Deno.env.get('SITE_URL')
 
 // Le montant de l'acompte est décidé ICI, jamais par le navigateur :
 // sinon n'importe qui pourrait réserver en payant 1 centime.
@@ -15,6 +17,9 @@ const DEPOSITS: Record<string, number> = {
   'manucure-nailart': 10,
   'depose': 10,
   'depose-exterieure': 10,
+  'retwist': 20,
+  'retwist-coiffure': 20,
+  'depart-locks-twist': 20,
   'micro-courts': 80,
   'micro-mi-longs': 80,
   'micro-longs': 80,
@@ -33,6 +38,13 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
   try {
+    if (!siteUrl) {
+      return new Response(
+        JSON.stringify({ error: 'SITE_URL non configurée sur la fonction.' }),
+        { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } },
+      )
+    }
+
     const { booking_id, service_id, service, email } = await req.json()
 
     const deposit = DEPOSITS[service_id]

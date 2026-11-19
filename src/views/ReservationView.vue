@@ -125,10 +125,16 @@ function validate() {
   return Object.keys(e).length === 0
 }
 
+/** Changer d'étape ne change pas de route : il faut remonter la page à la main. */
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 function goToPayment() {
   if (!validate()) return
   payError.value = ''
   step.value = 'payment'
+  scrollToTop()
 }
 
 async function pay() {
@@ -211,7 +217,7 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
         <button
           class="inline-flex items-center gap-2 text-sm mb-8 transition-colors"
           :class="isHair ? 'text-white/50 hover:text-white' : 'text-pink-400 hover:text-pink-600'"
-          @click="step = 'form'"
+          @click="step = 'form'; scrollToTop()"
         >
           <ArrowLeft class="w-4 h-4" />
           Modifier ma réservation

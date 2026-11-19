@@ -12,7 +12,7 @@ export type Service = {
   /** Durée de blocage de l'agenda. Interne : ne jamais l'afficher côté client. */
   durationH: number
   deposit: number
-  group?: 'installation' | 'resserrage'
+  group?: 'locks' | 'installation' | 'resserrage'
   popular?: boolean
 }
 
@@ -53,6 +53,39 @@ export const services: Service[] = [
     price: 15,
     durationH: 1,
     deposit: 10,
+  },
+
+  {
+    id: 'retwist',
+    type: 'coiffure',
+    name: 'Locks — Retwist à l\'huile ou au gel',
+    shortName: 'Retwist à l\'huile ou au gel',
+    price: 40,
+    durationH: 3,
+    deposit: 20,
+    group: 'locks',
+  },
+  {
+    id: 'retwist-coiffure',
+    type: 'coiffure',
+    name: 'Locks — Retwist à l\'huile ou au gel + coiffure',
+    shortName: 'Retwist + coiffure',
+    subtitle: 'Retwist 40€ + supplément coiffure 10€',
+    price: 50,
+    durationH: 4,
+    deposit: 20,
+    group: 'locks',
+  },
+  {
+    id: 'depart-locks-twist',
+    type: 'coiffure',
+    name: 'Départ locks twist / vanille',
+    shortName: 'Départ twist / vanille',
+    subtitle: 'Coiffure incluse',
+    price: 60,
+    durationH: 4,
+    deposit: 20,
+    group: 'locks',
   },
 
   {

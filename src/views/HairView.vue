@@ -7,6 +7,7 @@ import { servicesByType } from '@/data/services'
 const router = useRouter()
 
 const hairServices = servicesByType('coiffure')
+const locks = hairServices.filter((s) => s.group === 'locks')
 const installations = hairServices.filter((s) => s.group === 'installation')
 const resserrages = hairServices.filter((s) => s.group === 'resserrage')
 
@@ -75,6 +76,43 @@ const reserve = (service: string) => {
         Les installations de microlocks se font entre 300€ et 800€, kit d'entretien inclus 🌱.
         Les resserrages s'effectuent généralement toutes les 6 à 8 semaines et débutent à 80€.
       </p>
+    </section>
+
+    <!-- Locks -->
+    <section class="max-w-5xl mx-auto px-4 pt-10 pb-4">
+      <h2 class="text-center font-bold text-sm uppercase tracking-widest mb-10" style="color: #f0d817">
+        Locks
+      </h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div
+          v-for="service in locks"
+          :key="service.id"
+          class="group relative rounded-2xl p-6 border transition-all duration-300 cursor-pointer hover:border-[#f0d817]/40 hover:-translate-y-1"
+          style="background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08)"
+          @click="reserve(service.id)"
+        >
+          <!-- Left accent bar -->
+          <div class="absolute left-0 top-6 bottom-6 w-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style="background: linear-gradient(to bottom, #e20d0d, #f0d817, #3eb308)">
+          </div>
+
+          <h3 class="font-bold text-white text-base mb-2 leading-snug">{{ label(service) }}</h3>
+
+          <p v-if="service.subtitle" class="text-xs text-white/50 mb-4">{{ service.subtitle }}</p>
+          <div v-else class="mb-4"></div>
+
+          <div class="flex items-center justify-between">
+            <span class="text-2xl font-extrabold" style="color: #f0d817">{{ service.price }}€</span>
+            <span
+              class="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0"
+              style="background: #f0d817; color: #0d0502"
+            >
+              Réserver <ChevronRight class="w-3 h-3" />
+            </span>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Installations -->
