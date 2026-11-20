@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   CheckCircle, Scissors, Sparkles, User, Phone, Mail, ChevronDown,
@@ -125,9 +125,14 @@ function validate() {
   return Object.keys(e).length === 0
 }
 
-/** Changer d'étape ne change pas de route : il faut remonter la page à la main. */
-function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+/**
+ * Changer d'étape ne change pas de route : il faut remonter la page à la main.
+ * On attend le rendu : l'étape suivante est bien plus courte que le formulaire,
+ * et la page qui raccourcit interrompt un défilement lancé trop tôt.
+ */
+async function scrollToTop() {
+  await nextTick()
+  window.scrollTo(0, 0)
 }
 
 function goToPayment() {
